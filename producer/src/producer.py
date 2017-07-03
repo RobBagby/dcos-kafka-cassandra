@@ -5,6 +5,7 @@ import datetime
 import sys
 from kafka import KafkaProducer
 from machinetemperature import MachineTemperature
+from log import Log
 
 ADVERTISED_HOST = os.getenv('ADVERTISED_HOST')
 ADVERTISED_PORT = os.getenv('ADVERTISED_PORT')
@@ -27,11 +28,10 @@ def simulate():
             sensor = 'sensor' + str(i)
             temperature = _get_temperature(sensor, last_temperatures)
             message = MachineTemperature(sensor, temperature, datetime.datetime.utcnow()).to_json()
-            # message = 'Message: ' + time.ctime()
-            # print('sending message', message, ", key: ", i)
+
             producer.send('sensortemp', str.encode(message), key=sensor.encode())
 
-        print(str(PUBLISH_NUMBER_OF_SENSORS) + " messages published")
+        log.debug(str(PUBLISH_NUMBER_OF_SENSORS) + " messages published")
         time.sleep(PUBLISH_DELAY_IN_SECONDS)
 
 def _get_temperature(sensorid, last_temperatures):
@@ -51,15 +51,14 @@ def _get_temperature(sensorid, last_temperatures):
     return temperature
 
 if __name__ == "__main__":
-    # log = Log()
-    # log.debug("Started to simulate logs")
+    log = Log()
+    log.debug("Started to simulate logs")
     try:
         simulate()
     except:
-        print("error")
         e = sys.exc_info()[0]
-        print(e)
+        log.error("Unable to simulate events", exc_info=True)
     #   hostname = socket.gethostname()
-    #   log.error("Unable to simulate logging", exc_info=True)
+
     #   notify.error(hostname + ": ACS Logging simulation failed")
     #   mailhandler.send(hostname + ": ACS Logging simulation failed", "Check logs on " + hostname + " for details")
