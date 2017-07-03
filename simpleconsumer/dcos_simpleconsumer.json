@@ -1,0 +1,22 @@
+{
+  "id": "simpleconsumer",
+  "instances": 1,
+  "cpus": 0.5,
+  "mem": 32.0,
+  "env": {
+    "KAFKA_URI": "broker.kafka.l4lb.thisdcos.directory:9092",
+    "PYTHONUNBUFFERED":"0"
+  },
+  "container": {
+	"type": "DOCKER",
+	"docker": {
+	  "image": "rbagby/demo_consumer",
+      "forcePullImage": true,
+	  "network": "BRIDGE"
+	}
+  },
+  "healthChecks": [],
+  "labels":{
+	"HAPROXY_GROUP":"internal"
+  }
+}

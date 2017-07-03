@@ -1,0 +1,14 @@
+producer:
+  build: simpleproducer
+  env_file:
+    - ./env.conf
+
+analyzer:
+  build: simpleconsumer
+  env_file:
+    - ./env.conf
+
+lagreader:
+  build: lagreader
+  env_file:
+    - ./env.conf
