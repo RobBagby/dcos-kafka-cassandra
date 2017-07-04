@@ -1,3 +1,4 @@
+"""Module for event producer"""
 import os
 import time
 import random
@@ -14,10 +15,16 @@ KAFKA_URI = ADVERTISED_HOST + ':' + ADVERTISED_PORT
 PUBLISH_DELAY_IN_SECONDS = float(os.getenv('PUBLISH_DELAY_IN_SECONDS'))
 PUBLISH_NUMBER_OF_SENSORS = int(os.getenv('PUBLISH_NUMBER_OF_SENSORS'))
 
+APPLICATION_LOGGING_LEVEL = os.getenv('APPLICATION_LOGGING_LEVEL')
+LOGGER = Log()
+
 def simulate():
     """simulate temperature events for machines"""
-    print('Starting producer')
-    print('Writing to Kafka listening at: ', KAFKA_URI)
+
+    LOGGER.setLevel(APPLICATION_LOGGING_LEVEL)
+    LOGGER.debug("Starting producer")
+    LOGGER.debug('Set Logging Level to ' + APPLICATION_LOGGING_LEVEL)
+    LOGGER.debug('Writing to Kafka listening at: ' + KAFKA_URI)
 
     producer = KafkaProducer(bootstrap_servers=KAFKA_URI)
 
@@ -31,7 +38,7 @@ def simulate():
 
             producer.send('sensortemp', str.encode(message), key=sensor.encode())
 
-        log.debug(str(PUBLISH_NUMBER_OF_SENSORS) + " messages published")
+        LOGGER.debug(str(PUBLISH_NUMBER_OF_SENSORS) + " messages published")
         time.sleep(PUBLISH_DELAY_IN_SECONDS)
 
 def _get_temperature(sensorid, last_temperatures):
@@ -51,14 +58,8 @@ def _get_temperature(sensorid, last_temperatures):
     return temperature
 
 if __name__ == "__main__":
-    log = Log()
-    log.debug("Started to simulate logs")
     try:
         simulate()
     except:
         e = sys.exc_info()[0]
-        log.error("Unable to simulate events", exc_info=True)
-    #   hostname = socket.gethostname()
-
-    #   notify.error(hostname + ": ACS Logging simulation failed")
-    #   mailhandler.send(hostname + ": ACS Logging simulation failed", "Check logs on " + hostname + " for details")
+        LOGGER.error("Unable to simulate logging", exc_info=True)

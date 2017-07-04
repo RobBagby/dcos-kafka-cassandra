@@ -19,5 +19,5 @@ class MachineTemperature:
     def to_json(self):
         """Serializes class to json"""
         tempdict = self.__dict__
-        # tempdict['eventdate'] = self.eventdate.isoformat()
+        tempdict['eventdate'] = self.eventdate.isoformat()
         return json.dumps(tempdict)

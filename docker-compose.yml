@@ -1,14 +1,20 @@
-producer:
-  build: simpleproducer
-  env_file:
-    - ./env.conf
+version: '3.0'
+services:
+  producer:
+    build: producer
+    env_file:
+      - ./env.conf
 
-analyzer:
-  build: simpleconsumer
-  env_file:
-    - ./env.conf
+  analyzer:
+    build: consumer
+    env_file:
+      - ./env.conf
 
-lagreader:
-  build: lagreader
-  env_file:
-    - ./env.conf
+  lagreader:
+    build: lagreader
+    env_file:
+      - ./env.conf
+networks:
+  default:
+    external:
+      name: sensor-network

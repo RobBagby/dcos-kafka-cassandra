@@ -12,7 +12,7 @@ class Log:
         """
         Create a logger with the supplied name and logging level. Level only
         affects console output. There is an error.log and all.log file in the
-        logs directory that always provide error and debug level logging 
+        logs directory that always provide error and debug level logging
         regardless of the level parameter.
         """
 
