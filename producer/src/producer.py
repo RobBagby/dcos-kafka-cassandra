@@ -12,6 +12,8 @@ ADVERTISED_HOST = os.getenv('ADVERTISED_HOST')
 ADVERTISED_PORT = os.getenv('ADVERTISED_PORT')
 KAFKA_URI = ADVERTISED_HOST + ':' + ADVERTISED_PORT
 
+SENSOR_TEMPERATURE_TOPIC = os.getenv('SENSOR_TEMPERATURE_TOPIC')
+
 PUBLISH_DELAY_IN_SECONDS = float(os.getenv('PUBLISH_DELAY_IN_SECONDS'))
 PUBLISH_NUMBER_OF_SENSORS = int(os.getenv('PUBLISH_NUMBER_OF_SENSORS'))
 
@@ -36,7 +38,7 @@ def simulate():
             temperature = _get_temperature(sensor, last_temperatures)
             message = MachineTemperature(sensor, temperature, datetime.datetime.utcnow()).to_json()
 
-            producer.send('sensortemp', str.encode(message), key=sensor.encode())
+            producer.send(SENSOR_TEMPERATURE_TOPIC, str.encode(message), key=sensor.encode())
 
         LOGGER.debug(str(PUBLISH_NUMBER_OF_SENSORS) + " messages published")
         time.sleep(PUBLISH_DELAY_IN_SECONDS)
