@@ -1,26 +1,40 @@
+"""Module for lagreader"""
 import os
-import time
-import datetime
 from kafka import KafkaConsumer
-from kafka.structs import TopicPartition
+from log import Log
 from partitionlag import PartitionLag
 from partitionlagdict import PartitionLagDict
 
-print('Starting lagreader')
 ADVERTISED_HOST = os.getenv('ADVERTISED_HOST')
 ADVERTISED_PORT = os.getenv('ADVERTISED_PORT')
 KAFKA_URI = ADVERTISED_HOST + ':' + ADVERTISED_PORT
-print('KAFKA_URI', KAFKA_URI)
 
-consumer = KafkaConsumer(group_id='lagConsumerGroup', bootstrap_servers=KAFKA_URI)
-consumer.subscribe(topics=['partitionlag'])
-starttime = datetime.datetime.now()
-partitionLagDict = PartitionLagDict()
-# partitionLags = {}
+APPLICATION_LOGGING_LEVEL = os.getenv('APPLICATION_LOGGING_LEVEL')
+LOGGER = Log()
 
-for msg in consumer:
-    jsonString = msg.value
-    pl = PartitionLag.from_json(jsonString)
-    partitionLagDict.addPartitionLag(pl)
-    print("partition: ", pl.partition, " lag: ", str(pl.lag))
-    print(partitionLagDict.toString())
+def consume():
+    """Consumes events from partitionlag topic"""
+    LOGGER.setLevel(APPLICATION_LOGGING_LEVEL)
+    LOGGER.info("Starting lagreader")
+    LOGGER.debug('Set Logging Level to ' + APPLICATION_LOGGING_LEVEL)
+    LOGGER.debug('Listening on Kafka at: ' + KAFKA_URI)
+
+    consumer = KafkaConsumer(group_id='lagConsumerGroup', bootstrap_servers=KAFKA_URI)
+    consumer.subscribe(topics=['partitionlag'])
+    partition_lag_dict = PartitionLagDict()
+
+    for msg in consumer:
+        jsonstring = msg.value
+        partitionlag = PartitionLag.from_json(jsonstring)
+        partition_lag_dict.addPartitionLag(partitionlag)
+        LOGGER.info(str(partitionlag.eventdate) + "  Received partitionlag event: " \
+            + "partition: " + str(partitionlag.partition) \
+            + " lag: " + str(partitionlag.lag))
+        LOGGER.info(partition_lag_dict.toString())
+
+if __name__ == "__main__":
+    try:
+        consume()
+    except:
+        e = sys.exc_info()[0]
+        LOGGER.error("Unable to consume events", exc_info=True)

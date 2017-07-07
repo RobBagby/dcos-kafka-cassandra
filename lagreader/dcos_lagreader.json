@@ -5,7 +5,8 @@
   "mem": 32.0,
   "env": {
     "ADVERTISED_HOST":"broker.kafka.l4lb.thisdcos.directory",
-    "ADVERTISED_PORT":"9092"
+    "ADVERTISED_PORT":"9092",
+    "APPLICATION_LOGGING_LEVEL":"INFO"
   },
   "container": {
 	"type": "DOCKER",

@@ -1,7 +1,7 @@
 {
   "id": "consumer",
   "instances": 1,
-  "cpus": 0.5,
+  "cpus": 0.25,
   "mem": 128.0,
   "env": {
     "ADVERTISED_HOST":"broker.kafka.l4lb.thisdcos.directory",
@@ -14,7 +14,8 @@
     "CASSANDRA_PORT":"9042",
     "PUBLISH_NUMBER_OF_SENSORS":"50",
     "PUBLISH_DELAY_IN_SECONDS":"1",
-    "APPLICATION_LOGGING_LEVEL":"INFO"
+    "APPLICATION_LOGGING_LEVEL":"INFO",
+    "SENSOR_TEMPERATURE_TOPIC":"sensortemperature"
   },
   "container": {
 	"type": "DOCKER",

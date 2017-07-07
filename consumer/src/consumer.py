@@ -90,8 +90,8 @@ def consume():
 
 
             lag = (highwater - 1) - msg.offset
-            partitionlag = PartitionLag(msg.partition, lag)
-            LOGGER.info('Sending partition lag event.  Lag: ' + str(partitionlag.lag) \
+            partitionlag = PartitionLag(msg.partition, lag, datetime.datetime.now())
+            LOGGER.info(str(partitionlag.eventdate) + '  Sending partition lag event.  Lag: ' + str(partitionlag.lag) \
                 + ' partition: ' + str(partitionlag.partition) + '\n')
             producer.send('partitionlag', str.encode(partitionlag.to_json()))
 
