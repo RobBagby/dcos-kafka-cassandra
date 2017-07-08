@@ -1,0 +1,18 @@
+name: producer
+kind: breed
+metadata: {}
+deployable:
+  definition: rbagby/demo_producer
+ports:
+  webport: 9001/http
+environment_variables:
+  ADVERTISED_HOST: broker.kafka.l4lb.thisdcos.directory
+  ADVERTISED_PORT: 9092
+  PYTHONUNBUFFERED: 0
+  PUBLISH_NUMBER_OF_SENSORS: 50
+  PUBLISH_DELAY_IN_SECONDS: 1
+  APPLICATION_LOGGING_LEVEL: DEBUG
+  SENSOR_TEMPERATURE_TOPIC: sensortemperature
+constants: {}
+arguments: []
+dependencies: {}

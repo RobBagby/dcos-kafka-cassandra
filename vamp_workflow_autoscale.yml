@@ -1,0 +1,9 @@
+kind: workflow
+name: auto-scale-ready
+breed: auto-scale-ready
+schedule: daemon
+environment_variables:
+  PERIOD  : 15
+  VAMP_API_CACHE: false
+  VAMP_WORKFLOW_EXECUTION_PERIOD:  0
+  VAMP_WORKFLOW_EXECUTION_TIMEOUT: 0

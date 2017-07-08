@@ -1,0 +1,54 @@
+name: auto-scale-ready
+kind: breed
+metadata: {}
+deployable:
+  type: application/javascript
+  definition: |-
+    'use strict';
+    let _ = require('highland');
+    let vamp = require('vamp-node-client');
+    let api = new vamp.Api();
+    let http = new vamp.Http();
+    let logger = new vamp.Log();
+    let headers = {'Accept': 'application/json', 'Content-Type': 'application/json'};
+
+    let scale = {
+      instances: 1,
+      cpu: 0.1,
+      memory: '64MB'
+    };
+
+    let $period = Number(process.env.PERIOD); // seconds
+
+    let run = function () {
+      let events = _(http.get(api.url + '/events?tag=lag', {headers: headers}).then(JSON.parse));
+
+      events.flatMap(_).head().each(function (response) {
+        let lag = response.value;
+        let current = scale.instances;
+
+        if (lag > 500 && scale.instances < 10)
+          scale.instances++;
+        else if (lag < 100 && scale.instances > 1) scale.instances--;
+
+        logger.log(JSON.stringify(scale));
+
+        if (current !== scale.instances) {
+          http.request(api.url + '/deployments/readydemo/clusters/ready/services/consumer/scale', {
+            headers: headers,
+            method: 'PUT'
+          }, JSON.stringify(scale)).then(
+            function () {
+              api.event(['workflows:auto-scaling', 'scale'], scale.instances);
+            });
+        }
+      });
+    };
+
+    run();
+    setInterval(run, $period * 1000);
+ports: {}
+environment_variables: {}
+constants: {}
+arguments: []
+dependencies: {}
