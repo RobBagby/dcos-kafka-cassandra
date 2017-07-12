@@ -5,7 +5,7 @@ services:
     env_file:
       - ./env.conf
 
-  analyzer:
+  consumer:
     build: consumer
     env_file:
       - ./env.conf

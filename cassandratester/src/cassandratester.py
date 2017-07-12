@@ -11,7 +11,6 @@ CASSANDRA_ADDRESS = os.getenv('CASSANDRA_ADDRESS')
 CASSANDRA_PORT = os.getenv('CASSANDRA_PORT')
 CASSANDRA_KEYSPACE = 'test'
 
-APPLICATION_LOGGING_LEVEL = os.getenv('APPLICATION_LOGGING_LEVEL')
 LOGGER = Log()
 
 def initialize(session):
@@ -22,9 +21,9 @@ def initialize(session):
 
 def readwritetest():
     """Consumes events from SENSOR_TEMPERATURE_TOPIC topic"""
-    LOGGER.setLevel(APPLICATION_LOGGING_LEVEL)
+    LOGGER.setLevel('INFO')
     LOGGER.debug('Starting cassandratester')
-    LOGGER.debug('Set Logging Level to ' + APPLICATION_LOGGING_LEVEL)
+    LOGGER.debug('Set Logging Level to ' + 'INFO')
     LOGGER.debug('Writing to Cassandra at: ' + CASSANDRA_ADDRESS + ":" + CASSANDRA_PORT)
     try:
         cassandraclient = CassandraClient()

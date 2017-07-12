@@ -24,7 +24,7 @@ def simulate():
     """simulate temperature events for machines"""
 
     LOGGER.setLevel(APPLICATION_LOGGING_LEVEL)
-    LOGGER.debug("Starting producer")
+    LOGGER.info("Starting producer")
     LOGGER.debug('Set Logging Level to ' + APPLICATION_LOGGING_LEVEL)
     LOGGER.debug('Writing to Kafka listening at: ' + KAFKA_URI)
 
@@ -40,7 +40,7 @@ def simulate():
 
             producer.send(SENSOR_TEMPERATURE_TOPIC, str.encode(message), key=sensor.encode())
 
-        LOGGER.debug(str(PUBLISH_NUMBER_OF_SENSORS) + " messages published")
+        LOGGER.info(str(PUBLISH_NUMBER_OF_SENSORS) + " messages published")
         time.sleep(PUBLISH_DELAY_IN_SECONDS)
 
 def _get_temperature(sensorid, last_temperatures):

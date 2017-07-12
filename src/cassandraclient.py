@@ -84,7 +84,7 @@ class CassandraClient:
             LOGGER.error(e)
 
     def getLastTenSensorReadings(self, session, keyspace):
-        query = """SELECT sensor_id, event_date, event_time, temperature FROM %s.temperature_by_day;""" % keyspace
+        query = """SELECT sensor_id, event_date, event_time, temperature FROM %s.temperature_by_day LIMIT 10;""" % keyspace
 
         try:
             rows = session.execute(query)

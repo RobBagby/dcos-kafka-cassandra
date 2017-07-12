@@ -1,18 +1,18 @@
-name: producer
+name: lagreader
 kind: breed
 metadata: {}
 deployable:
-  definition: rbagby/demo_producer
+  definition: rbagby/demo_lagreader
 ports:
-  webport: 9001/http
+  webport: 9003/http
 environment_variables:
-  ADVERTISED_HOST:broker.kafka.l4lb.thisdcos.directory
-  ADVERTISED_PORT:9092
-  PYTHONUNBUFFERED:0
-  PUBLISH_NUMBER_OF_SENSORS:50
-  PUBLISH_DELAY_IN_SECONDS:1
-  APPLICATION_LOGGING_LEVEL:DEBUG
-  SENSOR_TEMPERATURE_TOPIC:sensortemperature
+  ADVERTISED_HOST: broker.kafka.l4lb.thisdcos.directory
+  ADVERTISED_PORT: 9092
+  APPLICATION_LOGGING_LEVEL: INFO
+  LAG_DELAY_IN_SECONDS: 1
+  LAG_AVERAGE_OF_LAST_X: 10
+  NOTIFY_VAMP: true
+  VAMP_URI: http://10.20.0.100:8080/api/v1/events
 constants: {}
 arguments: []
 dependencies: {}

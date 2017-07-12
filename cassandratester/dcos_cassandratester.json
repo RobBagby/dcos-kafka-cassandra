@@ -1,5 +1,5 @@
 {
-  "id": "producer",
+  "id": "cassandratester",
   "instances": 1,
   "cpus": 0.25,
   "mem": 128.0,
@@ -7,15 +7,20 @@
     "ADVERTISED_HOST":"broker.kafka.l4lb.thisdcos.directory",
     "ADVERTISED_PORT":"9092",
     "PYTHONUNBUFFERED":"0",
+    "CONSUMER_READ_DELAY_FACTOR":"2",
+    "CONSUMER_NUM_MESSAGES_TO_WRITE_LAG":"100",
+    "CONSUMER_NUM_SECONDS_TO_WRITE_LAG":"15",
+    "CASSANDRA_ADDRESS":"node.cassandra-px.l4lb.thisdcos.directory",
+    "CASSANDRA_PORT":"9042",
     "PUBLISH_NUMBER_OF_SENSORS":"50",
     "PUBLISH_DELAY_IN_SECONDS":"1",
-    "APPLICATION_LOGGING_LEVEL":"DEBUG",
+    "APPLICATION_LOGGING_LEVEL":"INFO",
     "SENSOR_TEMPERATURE_TOPIC":"sensortemperature"
   },
   "container": {
 	"type": "DOCKER",
 	"docker": {
-	  "image": "rbagby/demo_producer",
+	  "image": "rbagby/demo_cassandratester",
       "forcePullImage": true,
 	  "network": "BRIDGE"
 	}
