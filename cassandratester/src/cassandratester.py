@@ -18,6 +18,7 @@ def initialize(session):
     cassandraclient = CassandraClient()
     cassandraclient.createKeySpace(session, CASSANDRA_KEYSPACE)
     cassandraclient.createTemperatureByDayTable(session, CASSANDRA_KEYSPACE)
+    cassandraclient.createLastAlertPerSensorTable(session, CASSANDRA_KEYSPACE)
 
 def readwritetest():
     """Consumes events from SENSOR_TEMPERATURE_TOPIC topic"""
@@ -31,7 +32,7 @@ def readwritetest():
         initialize(session)
 
         while True:
-            cassandraclient.addSensorReading(session, CASSANDRA_KEYSPACE, \
+            cassandraclient.add_sensor_rating(session, CASSANDRA_KEYSPACE, \
                 'sensor1', datetime.datetime.now(), 72)
 
             rows = cassandraclient.getLastTenSensorReadings(session, CASSANDRA_KEYSPACE)

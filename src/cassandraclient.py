@@ -4,19 +4,6 @@ import os
 from cassandra.cluster import Cluster
 from log import Log
 
-# log = logging.getLogger()
-# log.setLevel('INFO')
-# handler = logging.StreamHandler()
-# handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s"))
-# log.addHandler(handler)
-
-# from cassandra import ConsistencyLevel
-
-# from cassandra.query import SimpleStatement
-
-# cluster = Cluster(contact_points=['localcassandra'],port=9042)
-# session = cluster.connect()
-
 APPLICATION_LOGGING_LEVEL = os.getenv('APPLICATION_LOGGING_LEVEL')
 LOGGER = Log()
 
@@ -25,7 +12,7 @@ class CassandraClient:
         cluster = Cluster(contact_points=[ip], port=port)
         session = cluster.connect()
         return session
-        
+
     def createKeySpace(self, session, keyspace):
         LOGGER.info("Creating keyspace...")
         try:
@@ -33,7 +20,7 @@ class CassandraClient:
                 CREATE KEYSPACE IF NOT EXISTS %s
                 WITH replication = { 'class': 'SimpleStrategy', 'replication_factor': '2' }
                 """ % keyspace)
-    
+
             LOGGER.info('created keyspace ' + keyspace)
 
         except Exception as e:
@@ -41,7 +28,7 @@ class CassandraClient:
             LOGGER.error(e)
 
     def createTemperatureByDayTable(self, session, keyspace):
-        if self._temperatureByDayTableExists(session, keyspace):
+        if self._table_exists(session, keyspace, 'temperature_by_day'):
             LOGGER.info('Table temperature_by_day exists')
         else:
             LOGGER.info('Creating table temperature_by_day')
@@ -58,8 +45,28 @@ class CassandraClient:
             except Exception as e:
                 LOGGER.error("Unable to create table temperature_by_day")
                 LOGGER.error(e)
-    def _temperatureByDayTableExists(self, session, keyspace):
-        query = """SELECT table_name FROM system_schema.tables WHERE keyspace_name='%s';""" % (keyspace)
+
+    def createLastAlertPerSensorTable(self, session, keyspace):
+        if self._table_exists(session, keyspace, 'last_alert_per_sensor'):
+            LOGGER.info('Table last_alert_per_sensor exists')
+        else:
+            LOGGER.info('Creating table last_alert_per_sensor')
+            try:
+                session.execute("""
+                    CREATE TABLE IF NOT EXISTS %s.last_alert_per_sensor (
+                        sensor_id text,
+                        event_date text,
+                        event_time timestamp,
+                        temperature int,
+                        PRIMARY KEY (sensor_id)
+                    );
+                    """ % keyspace)
+            except Exception as e:
+                LOGGER.error("Unable to create table last_alert_per_sensor")
+                LOGGER.error(e)
+
+    def _table_exists(self, session, keyspace, tablename):
+        query = """SELECT table_name FROM system_schema.tables WHERE keyspace_name='%s' AND table_name='%s';""" % (keyspace, tablename)
         LOGGER.debug('Running the following query ' + query)
 
         try:
@@ -68,20 +75,57 @@ class CassandraClient:
                 return False
             return True
         except Exception as e:
-            LOGGER.error("Error seraching for temperature_by_day table")
+            LOGGER.error('Error seraching for ' + tablename + ' table')
             LOGGER.error(e)
 
-    def addSensorReading(self, session, keyspace, sensorId, eventDatetime, temperature):
-        eventDate = eventDatetime.strftime("%Y%m%d")
+    def add_sensor_rating(self, session, keyspace, sensorId, eventDatetime, temperature):
+        eventdate = eventDatetime.strftime("%Y%m%d")
         eventTimestamp = eventDatetime.strftime("%Y-%m-%d %H:%M:%S")
 
-        query = """INSERT INTO %s.temperature_by_day(sensor_id, event_date, event_time, temperature) VALUES('%s', '%s', '%s', %s);""" % (keyspace, sensorId, eventDate, eventTimestamp, temperature)
+        query = """INSERT INTO %s.temperature_by_day(sensor_id, event_date, event_time, temperature) VALUES('%s', '%s', '%s', %s);""" % (keyspace, sensorId, eventdate, eventTimestamp, temperature)
 
         try:
             session.execute(query)
-        except Exception as e:
+        except Exception as exc:
             LOGGER.error("Unable to insert into table temperature_by_day")
-            LOGGER.error(e)
+            LOGGER.error(exc)
+
+    def add_last_alert_per_sensor(self, session, keyspace, sensor_id, eventDatetime, temperature):
+        existing_rows = self._get_last_alert_for_sensor(session, keyspace, sensor_id)
+        if existing_rows:
+            if existing_rows[0].event_time > eventDatetime:
+                return
+
+        eventdate = eventDatetime.strftime("%Y%m%d")
+        eventTimestamp = eventDatetime.strftime("%Y-%m-%d %H:%M:%S")
+
+        query = """INSERT INTO %s.last_alert_per_sensor(sensor_id, event_date, event_time, temperature) VALUES('%s', '%s', '%s', %s);""" % (keyspace, sensor_id, eventdate, eventTimestamp, temperature)
+
+        try:
+            session.execute(query)
+        except Exception as exc:
+            LOGGER.error("Unable to insert into table last_alert_per_sensor")
+            LOGGER.error(exc)
+
+    def _get_last_alert_for_sensor(self, session, keyspace, sensor_id):
+        query = """SELECT sensor_id, event_date, event_time, temperature FROM %s.last_alert_per_sensor where sensor_id = '%s';""" % (keyspace, sensor_id)
+
+        try:
+            rows = session.execute(query)
+            return rows
+        except Exception as exc:
+            LOGGER.error("Error selecting from last_alert_per_sensor")
+            LOGGER.error(exc)
+
+    def get_last_alerts(self, session, keyspace):
+        query = """SELECT sensor_id, event_date, event_time, temperature FROM %s.last_alert_per_sensor LIMIT 10;""" % (keyspace)
+
+        try:
+            rows = session.execute(query)
+            return rows
+        except Exception as exc:
+            LOGGER.error("Error returning get_last_alerts")
+            LOGGER.error(exc)
 
     def getLastTenSensorReadings(self, session, keyspace):
         query = """SELECT sensor_id, event_date, event_time, temperature FROM %s.temperature_by_day LIMIT 10;""" % keyspace

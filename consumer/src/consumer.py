@@ -37,6 +37,7 @@ def initialize(session):
     cassandraclient = CassandraClient()
     cassandraclient.createKeySpace(session, CASSANDRA_KEYSPACE)
     cassandraclient.createTemperatureByDayTable(session, CASSANDRA_KEYSPACE)
+    cassandraclient.createLastAlertPerSensorTable(session, CASSANDRA_KEYSPACE)
 
 def consume():
     """Consumes events from SENSOR_TEMPERATURE_TOPIC topic"""
@@ -62,15 +63,19 @@ def consume():
     consumer_delay = 1 / consumed_items_per_sec
 
     for msg in consumer:
-        tp = TopicPartition(msg.topic, msg.partition)
-        highwater = consumer.highwater(tp)
+        topicpartition = TopicPartition(msg.topic, msg.partition)
+        highwater = consumer.highwater(topicpartition)
 
         machinetemp = MachineTemperature.from_json(msg.value)
         LOGGER.debug('Inserting record for machineid: ' + machinetemp.machineid \
             + '; temperature: ' + str(machinetemp.temperature) \
             + '; datetime: ' + str(machinetemp.eventdate))
-        cassandraclient.addSensorReading(session, CASSANDRA_KEYSPACE, machinetemp.machineid, \
+        cassandraclient.add_sensor_rating(session, CASSANDRA_KEYSPACE, machinetemp.machineid, \
             machinetemp.eventdate, machinetemp.temperature)
+
+        if machinetemp.temperature > 75:
+            cassandraclient.add_last_alert_per_sensor(session, CASSANDRA_KEYSPACE, \
+                machinetemp.machineid, machinetemp.eventdate, machinetemp.temperature)
 
         if highwater is None:
             LOGGER.warning('Highwater was none, resubscribing to topic')
@@ -87,7 +92,6 @@ def consume():
                 + " lagcounter: " + str(lagcounter) \
                 + "CONSUMER_NUM_MESSAGES_TO_WRITE_LAG" + str(CONSUMER_NUM_MESSAGES_TO_WRITE_LAG) \
                 + "\n")
-
 
             lag = (highwater - 1) - msg.offset
             partitionlag = PartitionLag(msg.partition, lag, datetime.datetime.now())
