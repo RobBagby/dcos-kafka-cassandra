@@ -1,0 +1,55 @@
+{
+   "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+   "contentVersion": "1.0.0.0",
+   "parameters": {  
+		"apiVersionDefault": {
+			"type": "string",
+			"minLength": 1,
+			"metadata": {
+				"description": "Compute API Version"
+			}
+		},
+		"masterVMNamePrefix": {
+			"type": "string",
+			"minLength": 1,
+			"metadata": {
+				"description": "Master VM Name Prefix"
+			}
+		},
+		"extensionParameters": {
+			"type": "securestring",
+			"minLength": 0,
+			"metadata": {
+				"description": "Custom Parameter for Extension - for install_portworx_and_cassandra, this is empty"
+			}
+		}
+   },
+   "variables": {  
+		"singleQuote": "'",
+		"initScriptUrl": "https://raw.githubusercontent.com/RobBagby/dcos-kafka-cassandra/master/arm/install_portworx_and_cassandra.sh"
+   },
+   "resources": [  
+	{
+      "apiVersion": "[parameters('apiVersionDefault')]",
+      "dependsOn": [],
+      "location": "[resourceGroup().location]",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+	  "name": "[concat(parameters('masterVMNamePrefix'), '/waitforleader')]",
+      "properties": {
+        "publisher": "Microsoft.OSTCExtensions",
+        "type": "CustomScriptForLinux",
+        "typeHandlerVersion": "1.5",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+			"fileUris": [ 
+			   "[variables('initScriptUrl')]" 
+			 ]
+		},
+        "protectedSettings": {
+			"commandToExecute": "[concat('/bin/bash -c \"/bin/bash ./install_portworx_and_cassandra.sh ', variables('singleQuote'), parameters('extensionParameters'), variables('singleQuote'), ' >> /var/log/azure/install_portworx_and_cassandra-provision.log 2>&1 &\" &')]"
+        }
+      }
+    }
+	],
+   "outputs": {  }
+}
