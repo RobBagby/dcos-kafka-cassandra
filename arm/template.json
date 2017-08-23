@@ -26,7 +26,7 @@
    },
    "variables": {  
 		"singleQuote": "'",
-		"initScriptUrl": "https://raw.githubusercontent.com/RobBagby/dcos-kafka-cassandra/master/arm/install_portworx_and_cassandra.sh"
+		"initScriptUrl": "https://raw.githubusercontent.com/RobBagby/dcos-kafka-cassandra/reporting/arm/install_portworx_and_cassandra.sh"
    },
    "resources": [  
 	{

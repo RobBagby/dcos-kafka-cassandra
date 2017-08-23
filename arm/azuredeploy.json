@@ -1442,7 +1442,7 @@
         "properties": {
             "mode": "Incremental",
             "templateLink": {
-                "uri": "https://raw.githubusercontent.com/RobBagby/dcos-kafka-cassandra/master/arm/template.json",
+                "uri": "https://raw.githubusercontent.com/RobBagby/dcos-kafka-cassandra/reporting/arm/template.json",
                 "contentVersion": "1.0.0.0"
             },
             "parameters": {
