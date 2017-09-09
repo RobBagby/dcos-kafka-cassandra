@@ -1432,7 +1432,7 @@
       "type": "Microsoft.Compute/virtualMachines/extensions"
     },
     {
-        "name": "HelloWorldDcos",
+        "name": "deploycassandra",
         "type": "Microsoft.Resources/deployments",
         "apiVersion": "[variables('apiVersionLinkDefault')]",
         "dependsOn": [

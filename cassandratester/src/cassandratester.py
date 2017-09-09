@@ -3,6 +3,7 @@ import os
 import sys
 import time
 import datetime
+import random
 from log import Log
 from cassandraclient import CassandraClient
 import cassandra
@@ -30,16 +31,18 @@ def readwritetest():
         cassandraclient = CassandraClient()
         session = cassandraclient.getConnection(CASSANDRA_ADDRESS, CASSANDRA_PORT)
         initialize(session)
+        temperature = 70
 
         while True:
+            temperature = _get_temperature(temperature)
             cassandraclient.add_sensor_rating(session, CASSANDRA_KEYSPACE, \
-                'sensor1', datetime.datetime.now(), 72)
+                'sensor1', datetime.datetime.now(), temperature)
 
             rows = cassandraclient.getLastTenSensorReadings(session, CASSANDRA_KEYSPACE)
             LOGGER.info('Writing last 10 records')
             for row in rows:
                 LOGGER.info('time: ' + str(row.event_time) \
-                    + '   sensorid: ' + row.sensor_id + '  temperature' + str(row.temperature))
+                    + '   sensorid: ' + row.sensor_id + '  temperature ' + str(row.temperature))
             LOGGER.info('\n')
 
             time.sleep(3)
@@ -47,6 +50,17 @@ def readwritetest():
         LOGGER.info('Could not reach Cassandra Server retrying...')
         time.sleep(3)
         readwritetest()
+
+def _get_temperature(last_temperature):
+    """
+    Gets the last value for a temperature, changes it by 1
+    """
+    temperature = last_temperature
+
+    change = random.randint(-1, 1)
+    temperature += change
+
+    return temperature
 
 if __name__ == "__main__":
     try:
