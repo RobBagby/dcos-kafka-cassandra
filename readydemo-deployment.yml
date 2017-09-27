@@ -1,0 +1,87 @@
+name: readydemo
+kind: blueprint
+metadata: {}
+gateways: {}
+clusters:
+  ready:
+    metadata: {}
+    services:
+    - breed:
+        name: producer
+        kind: breed
+        metadata: {}
+        deployable:
+          definition: rbagby/demo_producer
+        ports:
+          webport: 9001/http
+        environment_variables:
+          ADVERTISED_HOST: broker.kafka.l4lb.thisdcos.directory
+          ADVERTISED_PORT: 9092
+          PYTHONUNBUFFERED: 0
+          PUBLISH_NUMBER_OF_SENSORS: 50
+          PUBLISH_DELAY_IN_SECONDS: 1
+          APPLICATION_LOGGING_LEVEL: DEBUG
+          SENSOR_TEMPERATURE_TOPIC: sensortemperature
+        constants: {}
+        arguments: []
+        dependencies: {}
+      environment_variables: {}
+      scale:
+        cpu: 0.2
+        memory: 256.00MB
+        instances: 1
+    - breed:
+        name: consumer
+        kind: breed
+        metadata: {}
+        deployable:
+          definition: rbagby/demo_consumer
+        ports:
+          webport: 9002/http
+        environment_variables:
+            ADVERTISED_HOST: broker.kafka.l4lb.thisdcos.directory
+            ADVERTISED_PORT: 9092
+            PYTHONUNBUFFERED: 0
+            CONSUMER_READ_DELAY_FACTOR: 2
+            CONSUMER_NUM_MESSAGES_TO_WRITE_LAG: 100
+            CONSUMER_NUM_SECONDS_TO_WRITE_LAG: 15
+            CASSANDRA_ADDRESS: node.cassandra-px.l4lb.thisdcos.directory
+            CASSANDRA_PORT: 9042
+            PUBLISH_NUMBER_OF_SENSORS: 50
+            PUBLISH_DELAY_IN_SECONDS: 1
+            APPLICATION_LOGGING_LEVEL: INFO
+            SENSOR_TEMPERATURE_TOPIC: sensortemperature
+        constants: {}
+        arguments: []
+        dependencies: {}    
+      environment_variables: {}
+      scale:
+        cpu: 0.2
+        memory: 256.00MB
+        instances: 1
+    - breed:
+        name: lagreader
+        kind: breed
+        metadata: {}
+        deployable:
+          definition: rbagby/demo_lagreader
+        ports:
+          webport: 9003/http
+        environment_variables:
+          ADVERTISED_HOST: broker.kafka.l4lb.thisdcos.directory
+          ADVERTISED_PORT: 9092
+          APPLICATION_LOGGING_LEVEL: INFO
+          LAG_DELAY_IN_SECONDS: 1
+          LAG_AVERAGE_OF_LAST_X: 10
+          NOTIFY_VAMP: true
+          VAMP_URI: http://10.20.0.100:8080/api/v1/events
+          CASSANDRA_ADDRESS: node.cassandra-px.l4lb.thisdcos.directory
+          CASSANDRA_PORT: 9042
+        constants: {}
+        arguments: []
+        dependencies: {}              
+      environment_variables: {}
+      scale:
+        cpu: 0.2
+        memory: 256.00MB
+        instances: 1

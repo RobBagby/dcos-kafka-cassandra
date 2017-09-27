@@ -65,6 +65,24 @@ class CassandraClient:
                 LOGGER.error("Unable to create table last_alert_per_sensor")
                 LOGGER.error(e)
 
+    def create_latest_lag(self, session, keyspace):
+        if self._table_exists(session, keyspace, 'latest_lag'):
+            LOGGER.info('Table latest_lag exists')
+        else:
+            LOGGER.info('Creating table latest_lag')
+            try:
+                session.execute("""
+                    CREATE TABLE IF NOT EXISTS %s.latest_lag (
+                        lagid text,
+                        lag float,
+                        event_time timestamp,
+                        PRIMARY KEY (lagid)
+                    );
+                    """ % keyspace)
+            except Exception as e:
+                LOGGER.error("Unable to create table latest_lag")
+                LOGGER.error(e)
+
     def _table_exists(self, session, keyspace, tablename):
         query = """SELECT table_name FROM system_schema.tables WHERE keyspace_name='%s' AND table_name='%s';""" % (keyspace, tablename)
         LOGGER.debug('Running the following query ' + query)
@@ -83,6 +101,18 @@ class CassandraClient:
         eventTimestamp = eventDatetime.strftime("%Y-%m-%d %H:%M:%S")
 
         query = """INSERT INTO %s.temperature_by_day(sensor_id, event_date, event_time, temperature) VALUES('%s', '%s', '%s', %s);""" % (keyspace, sensorId, eventdate, eventTimestamp, temperature)
+
+        try:
+            session.execute(query)
+        except Exception as exc:
+            LOGGER.error("Unable to insert into table temperature_by_day")
+            LOGGER.error(exc)
+
+
+    def update_latest_lag(self, session, keyspace, lag, eventDatetime):
+        eventTimestamp = eventDatetime.strftime("%Y-%m-%d %H:%M:%S")
+
+        query = """UPDATE %s.latest_lag SET lag = %s, event_time = '%s' WHERE lagid = 'sensors';""" % (keyspace, lag, eventTimestamp)
 
         try:
             session.execute(query)
@@ -125,6 +155,16 @@ class CassandraClient:
             return rows
         except Exception as exc:
             LOGGER.error("Error returning get_last_alerts")
+            LOGGER.error(exc)
+
+    def get_latest_lag(self, session, keyspace):
+        query = """SELECT lag, event_time FROM %s.latest_lag WHERE lagid = 'sensors';""" % (keyspace)
+
+        try:
+            rows = session.execute(query)
+            return rows
+        except Exception as exc:
+            LOGGER.error("Error returning latest_lag")
             LOGGER.error(exc)
 
     def getLastTenSensorReadings(self, session, keyspace):

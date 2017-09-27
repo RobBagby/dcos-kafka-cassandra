@@ -13,6 +13,8 @@ environment_variables:
   LAG_AVERAGE_OF_LAST_X: 10
   NOTIFY_VAMP: true
   VAMP_URI: http://10.20.0.100:8080/api/v1/events
+  CASSANDRA_ADDRESS: node.cassandra-px.l4lb.thisdcos.directory
+  CASSANDRA_PORT: 9042
 constants: {}
 arguments: []
 dependencies: {}

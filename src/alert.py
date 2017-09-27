@@ -33,6 +33,7 @@ class Alerts:
 class WebViewData:
     def __init__(self):
         self.last_alerts = Alerts()
+        self.latest_lag = 0
 
     def encode_alert(self, obj):
         if isinstance(obj, Alerts):

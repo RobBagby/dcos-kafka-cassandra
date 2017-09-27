@@ -27,38 +27,30 @@ class QueueAPI(Resource):
     # @app.route("/")
     # def hello():
     #     return render_template('index.html')
+    # def get(self, queue_id):
 
-    def get(self, queue_id):
-        """Get details of a queue. 
-        """
+    # @app.route("/metadata")
+    def get(self):
+        """Get details of a queue."""
 
         cassandraclient = CassandraClient()
         session = cassandraclient.getConnection(CASSANDRA_ADDRESS, CASSANDRA_PORT)
         self._initialize(session)
-        
+
         wvd = WebViewData()
 
-        alerts = self.get_last_alerts(session)
+        alerts = self._get_last_alerts(session)
         wvd.last_alerts = alerts
-        # if not queue_id:
-        #     queue_id = config.AZURE_STORAGE_QUEUE_NAME
 
-        # queue = self.getMessageQueue(queue_id)
-        # length = self.queue.getLength()
-        # duration = self.getTableService().getLastProcessingTime()
-        
-        # resp = {
-        #     'queue_name': queue_id,
-        #     'queue_length': length,
-        #     'last_duration': duration,
-        #     'time': time.strftime("%H:%M")
-        #     }
+        lag = self._get_latest_lag(session)
+        wvd.latest_lag = lag
+
         resp = json.dumps(wvd, cls=CustomJsonEncoder)
-        # print('resp', alerts.to_json())
-        # resp = {'test': 'fred'}
+
         return resp
-    
-    def get_last_alerts(self, session):
+
+    def _get_last_alerts(self, session):
+        """Get last alerts"""
         cassandraclient = CassandraClient()
         rows = cassandraclient.get_last_alerts(session, CASSANDRA_KEYSPACE)
         alerts = Alerts()
@@ -67,11 +59,16 @@ class QueueAPI(Resource):
             alerts.append(Alert(row.sensor_id, row.event_date, row.event_time, row.temperature))
 
         return alerts
-    # def getTableService(self):
-    #     return SummaryTable(config.AZURE_STORAGE_ACCOUNT_NAME, config.AZURE_STORAGE_ACCOUNT_KEY, config.AZURE_STORAGE_SUMMARY_TABLE_NAME)
     
-    # def getMessageQueue(self, queue_id):
-    #     self.queue = Queue(account_name = config.AZURE_STORAGE_ACCOUNT_NAME, account_key=config.AZURE_STORAGE_ACCOUNT_KEY, queue_name=queue_id)
+    def _get_latest_lag(self, session):
+        """Get last alerts"""
+        cassandraclient = CassandraClient()
+        rows = cassandraclient.get_latest_lag(session, CASSANDRA_KEYSPACE)
+
+        if not rows:
+            return 0;
+
+        return rows[0].lag            
 
     def _initialize(self, session):
         cassandraclient = CassandraClient()
@@ -79,8 +76,10 @@ class QueueAPI(Resource):
         cassandraclient.createTemperatureByDayTable(session, CASSANDRA_KEYSPACE)
         cassandraclient.createLastAlertPerSensorTable(session, CASSANDRA_KEYSPACE)
 
-api.add_resource(QueueAPI, '/queue',
-                 '/queue/<string:queue_id>')
+api.add_resource(QueueAPI, '/metadata')
+
+# api.add_resource(QueueAPI, '/queue',
+#                  '/queue/<string:queue_id>')
 
 if __name__ == "__main__":
     app.debug = True

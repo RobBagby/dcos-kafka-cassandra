@@ -1,0 +1,35 @@
+{
+  "id": "webapi",
+  "instances": 1,
+  "cpus": 0.5,
+  "mem": 512.0,
+  "env": {
+    "CASSANDRA_ADDRESS":"node.cassandra-px.l4lb.thisdcos.directory",
+    "CASSANDRA_PORT":"9042",
+    "APPLICATION_LOGGING_LEVEL":"INFO"
+  },
+  "container": {
+	"type": "DOCKER",
+	"docker": {
+	  "image": "rbagby/webapi",
+	  "network": "BRIDGE",
+	  "portMappings": [
+		{ "containerPort": 5000, "hostPort": 0, "servicePort": 10001 }
+	  ]
+	}
+  },
+  "healthChecks": [{
+	  "protocol": "HTTP",
+	  "path": "/metadata",
+	  "portIndex": 0,
+	  "timeoutSeconds": 10,
+	  "gracePeriodSeconds": 10,
+	  "intervalSeconds": 2,
+	  "maxConsecutiveFailures": 10
+  }],
+  "labels":{
+	"HAPROXY_GROUP":"external",
+	"HAPROXY_0_VHOST":"bagbydcospwxmagt.westus.cloudapp.azure.com",
+	"HAPROXY_0_MODE":"http"
+  }
+}
